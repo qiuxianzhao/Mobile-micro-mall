@@ -1,0 +1,33 @@
+<?php
+  header('Content-Type:text/html;charset=utf-8');
+  require "Wechat.class.php";
+  define("TOKEN", "welcome"); //定义微信的token令牌
+  define('APPID','wx7bf4e41ed10985a8'); //定义微信的应用ID
+  define('APPSECRET','62e677149dd14e1abf45ca996cb81bbb'); //定义微信的应用密钥
+  
+  define('CURRENT_TIME', time() ); //统一整站运行时间.
+
+  $db = new pdo('mysql:host='.SAE_MYSQL_HOST_M.';port='.SAE_MYSQL_PORT.';dbname='.SAE_MYSQL_DB,SAE_MYSQL_USER,SAE_MYSQL_PASS);
+
+  $w = new Wechat();
+
+  //$wechatObj->robort();
+  
+  $sql = "select `expires_in`,`access_token`,`create_time` from `access` where `appid`='".APPID."'";
+  $data = $db->query($sql)->fetch(PDO::FETCH_CLASS);
+
+  var_dump( $data );
+  echo '<hr>';
+  echo $sql;
+  die;
+  /*
+  if ( CURRENT_TIME >= $create + $expire + 60 ){
+    //去获取票据
+  }else{
+    //去数据库获取票据
+  }
+  $w->getAccessToken(APPID,APPSECRET);
+  */
+
+
+  //print_r( $data );

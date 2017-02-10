@@ -1,0 +1,12 @@
+<?php
+  header('Content-Type:text/html;charset=utf-8');
+  require "Wechat.class.php";
+  define("TOKEN", "welcome"); //定义微信的token令牌
+
+  $wechatObj = new Wechat();
+
+  // $wechatObj->robort();
+
+  if( $wechatObj->MsgType == 'event' ){
+    $wechatObj->responseMsg('欢迎关注！！！我会好好疼你的');
+  }

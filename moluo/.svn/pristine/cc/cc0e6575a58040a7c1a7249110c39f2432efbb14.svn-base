@@ -1,0 +1,110 @@
+<?php
+//微信
+class Wechat{
+  private $user;    //用户的帐号
+  private $dev;     //开发者帐号
+  private $MsgType; //接收的消息类型
+  private $postObj; //接收到的文档
+	private $responseTpl = array(    //回复消息模板
+    //文本消息
+    'text'=> "<xml>
+			  <ToUserName><![CDATA[%s]]></ToUserName>
+				<FromUserName><![CDATA[%s]]></FromUserName>
+				<CreateTime>%s</CreateTime>
+				<MsgType><![CDATA[%s]]></MsgType>
+				<Content><![CDATA[%s]]></Content>
+				<FuncFlag>0</FuncFlag>
+				</xml>",
+  );
+  public function __construct(){
+    if( isset($_GET["echostr"]) ){    
+      $echoStr = $_GET["echostr"];
+      if($this->checkSignature()){
+        echo $echoStr;
+        exit;
+      }
+    }
+    $this->getMsg();
+  }
+  
+  public function getMsg(){
+    $postStr = file_get_contents('php://input');
+    if( !empty($postStr) ){
+      libxml_disable_entity_loader(true);
+      $this->postObj  = simplexml_load_string($postStr, 'SimpleXMLElement', LIBXML_NOCDATA);
+      $this->user     = $this->postObj->FromUserName; // 发送方，用户帐号
+      $this->dev      = $this->postObj->ToUserName;   // 接收方，开发者的公众号
+      $this->MsgType  = $this->postObj->MsgType;      // 获取消息类型[text,image]
+      $method = 'response'.$this->MsgType;
+      if( function_exists( $method ) ){
+        $this->$method( $this->MsgType );
+      }
+    }
+  }
+
+  public function responseText( $content ){
+    $keyword = trim( $this->postObj->Content );  //用户发送的文本内容
+    if( !empty( $keyword ) ){
+      $resultStr = sprintf($this->responseTpl['text'], $this->dev, $this->user, time(), "text", $content);
+      echo $resultStr;
+    }
+  }
+  
+  //public function responseImage(){}
+
+  //public function responsemusic(){}
+
+  //public function responseVedio(){}
+
+
+  //获取用户发送过来的消息
+  public function response(){
+    $postStr = file_get_contents('php://input');
+		if( !empty($postStr) ){
+      libxml_disable_entity_loader(true);
+      $postObj = simplexml_load_string($postStr, 'SimpleXMLElement', LIBXML_NOCDATA); $fromUsername = $postObj->FromUserName; //发送信息的用户帐号 
+      $toUsername = $postObj->ToUserName;  //接收信息的公众号帐号
+      $MsgType = $postObj->MsgType;    //获取消息中类型
+      
+      
+      $time = time(); //当前时间戳             
+      if( !empty( $keyword ) ){
+        $msgType = "text"; //消息类型
+        
+        $resultStr = sprintf($this->responseTpl['text'], $fromUsername, $toUsername, $time, $msgType, $contentStr);
+        echo $resultStr;
+      }else{
+        echo "Input something...";
+      }
+
+    }else {
+      echo "";
+      exit;
+    }
+  }
+		
+	private function checkSignature(){
+    if(!defined("TOKEN")) {
+      throw new Exception('TOKEN is not defined!');
+    }
+        
+    $signature = $_GET["signature"];
+    $timestamp = $_GET["timestamp"];
+    $nonce = $_GET["nonce"];
+        		
+		$token = TOKEN;
+		$tmpArr = array($token, $timestamp, $nonce);
+    // use SORT_STRING rule
+		sort($tmpArr, SORT_STRING);
+		$tmpStr = implode( $tmpArr );
+		$tmpStr = sha1( $tmpStr );
+		
+		if( $tmpStr == $signature ){
+			return true;
+		}else{
+			return false;
+		}
+	}
+}
+
+?>

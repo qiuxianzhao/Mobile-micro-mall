@@ -1,0 +1,8 @@
+<?php
+  header('Content-Type:text/html;charset=utf-8');
+  require "Wechat.class.php";
+  define("TOKEN", "welcome"); //定义微信的token令牌
+
+  $wechatObj = new Wechat();
+  $wechatObj->responsemusic('淡定','好听的尽情放送','http://moluo.applinzi.com/src/Yamin.mp3','http://moluo.applinzi.com/src/Yamin.mp3'); //音乐
+  //$wechatObj->response('你好!!!我是改造过的wechat发送消息!!'); //响应信息

@@ -1,0 +1,76 @@
+<?php
+//微信
+class Wechat{
+  //回复消息模板
+	private $responseTpl = array(
+    //文本消息
+    'text'=> "<xml>
+			  <ToUserName><![CDATA[%s]]></ToUserName>
+				<FromUserName><![CDATA[%s]]></FromUserName>
+				<CreateTime>%s</CreateTime>
+				<MsgType><![CDATA[%s]]></MsgType>
+				<Content><![CDATA[%s]]></Content>
+				<FuncFlag>0</FuncFlag>
+				</xml>",
+  );
+  public function __construct(){
+    if( isset($_GET["echostr"]) ){    
+      $echoStr = $_GET["echostr"];
+      if($this->checkSignature()){
+        echo $echoStr;
+        exit;
+      }
+    }
+  }
+  
+  //获取用户发送过来的消息
+  public function response(){
+    $postStr = file_get_contents('php://input');
+		if( !empty($postStr) ){
+      libxml_disable_entity_loader(true);
+      $postObj = simplexml_load_string($postStr, 'SimpleXMLElement', LIBXML_NOCDATA); $fromUsername = $postObj->FromUserName; //发送信息的用户帐号 
+      $toUsername = $postObj->ToUserName;  //接收信息的公众号帐号
+      $MsgType = $postObj->MsgType;    //获取消息中类型
+      $keyword = trim($postObj->Content);  //用户发送的内容
+      
+      $time = time(); //当前时间戳             
+      if( !empty( $keyword ) ){
+        $msgType = "text"; //消息类型
+        $contentStr = $MsgType; //返回
+        $resultStr = sprintf($this->responseTpl['text'], $fromUsername, $toUsername, $time, $msgType, $contentStr);
+        echo $resultStr;
+      }else{
+        echo "Input something...";
+      }
+
+    }else {
+      echo "";
+      exit;
+    }
+  }
+		
+	private function checkSignature(){
+    if(!defined("TOKEN")) {
+      throw new Exception('TOKEN is not defined!');
+    }
+        
+    $signature = $_GET["signature"];
+    $timestamp = $_GET["timestamp"];
+    $nonce = $_GET["nonce"];
+        		
+		$token = TOKEN;
+		$tmpArr = array($token, $timestamp, $nonce);
+    // use SORT_STRING rule
+		sort($tmpArr, SORT_STRING);
+		$tmpStr = implode( $tmpArr );
+		$tmpStr = sha1( $tmpStr );
+		
+		if( $tmpStr == $signature ){
+			return true;
+		}else{
+			return false;
+		}
+	}
+}
+
+?>
